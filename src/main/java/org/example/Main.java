@@ -15,7 +15,7 @@ import java.util.Properties;
 public class Main {
     public static void main(String[] args) {
 
-        Boolean confirmRegistration = false;
+        Boolean confirmRegistration = true;//Set to false if you only want to test if the details are filled correctly
 
         Properties properties = new Properties();
         try (FileInputStream input = new FileInputStream("config.properties")) {
@@ -32,6 +32,8 @@ public class Main {
         String userCarLicense = properties.getProperty("userCarLicense");
         String userEmail = properties.getProperty("userEmail");
 
+        //TODO: Add config file values validation
+
         System.setProperty("webdriver.chrome.driver", driverPath);
 
         ChromeOptions options = new ChromeOptions();
@@ -40,13 +42,15 @@ public class Main {
         WebDriverWait wait = new WebDriverWait(driver, 10);
 
         try {
-
-            //WebDriver driver = new ChromeDriver();
             driver.get("https://www.register2park.com/register");
+
+            //Part 1 : Enter property name
             var propertyNameInputField = driver.findElement(By.id("propertyName"));
             propertyNameInputField.sendKeys(propertyName);
             var nextButton = driver.findElement(By.id("confirmProperty"));
             nextButton.click();
+
+            //Part 2 : Confirm property
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(String.format("//b[contains(text(), '%s')]", propertyName))));
             WebElement radioButton = driver.findElement(By.xpath(String.format("//b[contains(text(), '%s')]/preceding-sibling::input[@type='radio']", propertyName)));
             radioButton.click();
@@ -54,9 +58,11 @@ public class Main {
             WebElement confirmButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("confirmPropertySelection")));
             confirmButton.click();
 
+            //Part 3 : Choose visitor parking option
             WebElement visitorParkingButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("registrationTypeVisitor")));
             visitorParkingButton.click();
 
+            //Part 4 : Enter user values into input fields
             WebElement aptInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("vehicleApt")));
             aptInput.sendKeys(userApt);
             var makeInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("vehicleMake")));
@@ -73,6 +79,7 @@ public class Main {
                 WebElement confirmVehicleButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("vehicleInformation")));
                 confirmVehicleButton.click();
 
+                //Part 5 : Send email confirmation
                 WebElement emailButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-confirmation")));
                 emailButton.click();
 
@@ -89,7 +96,8 @@ public class Main {
             System.out.println(ex.toString());
         }
         finally {
-            //driver.quit();
+            //Comment below line if you want to check the inputs entered and confirm the registration
+            driver.quit();
         }
     }
 }
